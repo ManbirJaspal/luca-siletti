@@ -43,6 +43,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ---------- WebGL canvas (switches z-index when an overlay is open) ---------- */
 #gl{position:fixed;inset:0;width:100%;height:100%;z-index:20;pointer-events:none}
 body.overlay-open #gl{z-index:40}
+/* the overlays carry their own top bar, so the page nav steps aside while one is open */
+body.overlay-open #nav{opacity:0 !important;pointer-events:none}
 
 /* page content sits above the canvas; images are rendered by WebGL, so the real <img> is hidden */
 main{position:relative}
@@ -195,7 +197,7 @@ html.nogl .ph img{opacity:1}
 .ov.on{display:block}
 .ov .ui{position:absolute;inset:0;pointer-events:none;font:500 12px/1.5 var(--mono);letter-spacing:.08em;text-transform:uppercase}
 .ov .ui > *{pointer-events:auto}
-.ov .ui .top{position:absolute;left:var(--gutter);right:var(--gutter);top:calc(var(--nav-h) - 44px);display:flex;justify-content:space-between;align-items:center}
+.ov .ui .top{position:absolute;left:var(--gutter);right:var(--gutter);top:0;height:var(--nav-h);display:flex;justify-content:space-between;align-items:center}
 .ov .ui .close{display:inline-flex;align-items:center;gap:10px;padding:8px 0;font:inherit;letter-spacing:inherit;text-transform:inherit}
 .ov .ui .close i{width:30px;height:30px;border:1.5px solid currentColor;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:14px}
 #print .ui .bottom{position:absolute;left:var(--gutter);right:var(--gutter);bottom:var(--gutter);display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
@@ -208,7 +210,6 @@ html.nogl .ph img{opacity:1}
 #print .ui .arrow.next{right:0}
 #print .ui .hint{position:absolute;left:50%;bottom:var(--gutter);transform:translateX(-50%);opacity:.55}
 #print .hit{position:absolute;inset:0;cursor:none}
-#sheet .ui .top{top:calc(var(--nav-h) - 44px)}
 #sheet .ui .top .lbl{display:flex;gap:1.5em;align-items:center}
 #sheet .ui .top .lbl button{font:inherit;letter-spacing:inherit;text-transform:inherit;padding:8px 0;position:relative}
 #sheet .ui .top .lbl button::after{content:"";position:absolute;left:0;right:100%;bottom:4px;height:1px;background:currentColor;transition:right .35s}
@@ -875,7 +876,8 @@ function sectionTriggers() {
   const set = (name, ink) => () => { roCh.textContent = name; nav.classList.toggle('ink', ink); cursor.el.classList.toggle('ink', ink); };
   const defs = [['#hero', 'Viewfinder', false], ['#roll', 'The roll', false], ...CHAPTERS.map(c => ['#' + c.key, c.title, true]), ['#sheet-cta', 'Index', true], ['#about', 'About', true], ['#contact', 'Contact', true]];
   defs.forEach(([sel, name, ink]) => {
-    ScrollTrigger.create({ trigger: sel, start: 'top 50%', end: 'bottom 50%', onEnter: set(name, ink), onEnterBack: set(name, ink) });
+    // switch when the section's edge passes the middle of the nav bar, so dark text never sits on the black roll
+    ScrollTrigger.create({ trigger: sel, start: 'top 32px', end: 'bottom 32px', onEnter: set(name, ink), onEnterBack: set(name, ink) });
   });
 }
 
