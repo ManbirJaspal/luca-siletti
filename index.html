@@ -945,7 +945,7 @@ function openPrint(n, fromRect, source) {
   const p = P(n);
   document.body.classList.add('overlay-open'); printOv.classList.add('on'); if (lenis) lenis.stop();
   backdrop.visible = true; gsap.to(backdrop.material, { opacity: 0.965, duration: 0.5, ease: 'power2.out' });
-  if (sheet.open) { dim.visible = true; gsap.to(dim.material, { opacity: 0.8, duration: 0.5, ease: 'power2.out' }); }
+  if (sheet.open) { dim.visible = true; gsap.to(dim.material, { opacity: 0.8, duration: 0.5, ease: 'power2.out' }); gsap.to(sheetOv.querySelector('.ui'), { opacity: 0, duration: 0.3 }); }
   gsap.fromTo(printOv.querySelector('.ui'), { opacity: 0 }, { opacity: 1, duration: 0.5, delay: 0.2 });
   updatePrintUI(n);
   const mesh = makePrintMesh(p); print.mesh = mesh;
@@ -966,7 +966,7 @@ function closePrint() {
   const tl = gsap.timeline({ onComplete: () => { sceneOv.remove(mesh); mesh.material.dispose(); print.mesh = null; print.open = false; print.busy = false; printOv.classList.remove('on'); if (!sheet.open) { document.body.classList.remove('overlay-open'); backdrop.visible = false; if (lenis) lenis.start(); } cursor.set(''); } });
   if (back && !REDUCED) tl.to(st, { ...back, duration: 0.8, ease: 'expo.inOut', onUpdate: () => setMeshRect(mesh, st) }, 0);
   tl.to(mesh.material.uniforms.uOpacity, { value: 0, duration: back ? 0.25 : 0.4, ease: 'power2.in' }, back ? 0.6 : 0);
-  if (sheet.open) tl.to(dim.material, { opacity: 0, duration: 0.5, onComplete: () => { dim.visible = false; } }, 0.2);
+  if (sheet.open) { tl.to(dim.material, { opacity: 0, duration: 0.5, onComplete: () => { dim.visible = false; } }, 0.2); tl.to(sheetOv.querySelector('.ui'), { opacity: 1, duration: 0.4 }, 0.4); }
   else tl.to(backdrop.material, { opacity: 0, duration: 0.5 }, 0.2);
 }
 function stepPrint(dir) {
