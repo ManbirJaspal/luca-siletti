@@ -1,0 +1,42 @@
+name: photos
+
+# Generates img/*.webp from the originals on lucasiletti.com and switches the
+# site to local image mode. Runs once on the first push; re-run it by hand if
+# a photo changes. Its own commit does not retrigger it (GITHUB_TOKEN pushes
+# never start workflows).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: photos
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: ${{ !contains(github.event.head_commit.message, '[photos]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build WebP files
+        run: |
+          npm --prefix tools install --no-audit --no-fund
+          node tools/build-images.mjs
+      - name: Commit the files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "Add local photo files, switch to local image mode [photos]"
+            git push
+          else
+            echo "nothing to commit"
+          fi

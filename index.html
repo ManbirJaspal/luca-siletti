@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Luca Siletti — Photographer and filmmaker</title>
+<meta name="description" content="Luca Siletti is a Boston-based photographer and filmmaker. Portraits, stage, street, land and studio work, presented as a roll of film you can develop, inspect and explore.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ------------------------------------------------------------------
+   Luca Siletti — "From negative to print"
+   Black (darkroom) → 18% gray card (developing) → paper (the prints)
+   ------------------------------------------------------------------ */
+:root{
+  --black:#000;
+  --gray:#7b7978;      /* 18% gray card, a hair warm */
+  --gray-2:#6e6c6b;
+  --paper:#f3efe8;
+  --ink:#0e0d0c;
+  --amber:#f2a93b;     /* safelight */
+  --film:#1d1512;      /* film base */
+  --white:#fff;
+  --font:"Archivo", system-ui, sans-serif;
+  --serif:"Instrument Serif", Georgia, serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --nav-h:64px;
+  --gutter:clamp(16px, 3vw, 48px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:auto;-webkit-text-size-adjust:100%}
+html,body{background:var(--black);color:var(--paper);font-family:var(--font);font-weight:400;line-height:1.4}
+body{overflow-x:hidden;min-height:100vh}
+body.locked{overflow:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+::selection{background:var(--amber);color:var(--ink)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---------- WebGL canvas (switches z-index when an overlay is open) ---------- */
+#gl{position:fixed;inset:0;width:100%;height:100%;z-index:20;pointer-events:none}
+body.overlay-open #gl{z-index:40}
+
+/* page content sits above the canvas; images are rendered by WebGL, so the real <img> is hidden */
+main{position:relative}
+html.cur, html.cur *{cursor:none !important}
+body.overlay-open{overflow:hidden}
+.ph{position:relative;background:transparent}
+.ph img{width:100%;height:100%;object-fit:cover;opacity:0}
+html.nogl .ph img{opacity:1}
+.ph .tag{position:absolute;left:0;bottom:-1.6em;font:500 11px/1 var(--mono);letter-spacing:.04em;color:currentColor;opacity:.75;white-space:nowrap}
+
+/* ---------- Loader iris ---------- */
+#iris{position:fixed;inset:0;z-index:100;pointer-events:none;overflow:hidden}
+#iris .blade{position:absolute;left:50%;top:50%;background:#000;will-change:transform}
+#iris .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--paper);transition:opacity .4s}
+#iris .count{font:500 clamp(40px,8vw,110px)/1 var(--mono);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+#iris .count small{font-size:.32em;letter-spacing:.08em;margin-left:.3em;opacity:.6}
+#iris .lbl{font:400 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+
+/* ---------- Nav ---------- */
+#nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:60;display:flex;align-items:center;justify-content:space-between;padding:0 var(--gutter);color:#fff;opacity:0;transition:opacity .6s,color .4s}
+#nav.ink{color:var(--ink)}
+#nav.on{opacity:1}
+#nav .mark{font-family:var(--font);font-weight:800;font-stretch:62%;font-size:22px;letter-spacing:.02em;text-transform:uppercase;line-height:1}
+#nav .readout{position:absolute;left:50%;transform:translateX(-50%);font:500 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;display:flex;gap:1.2em}
+#nav .readout .ch{display:inline-block;min-width:11ch;text-align:left}
+#nav .links{display:flex;gap:clamp(14px,2vw,28px);font-size:15px;font-weight:500}
+#nav .links a,#nav .links button{position:relative;padding:6px 0}
+#nav .links a::after,#nav .links button::after{content:"";position:absolute;left:0;right:100%;bottom:2px;height:1px;background:currentColor;transition:right .35s cubic-bezier(.65,0,.35,1)}
+#nav .links a:hover::after,#nav .links button:hover::after{right:0}
+#nav .links .snd .on{display:none}
+#nav .links .snd[aria-pressed="true"] .on{display:inline}
+#nav .links .snd[aria-pressed="true"] .off{display:none}
+@media (max-width:720px){#nav .readout{display:none}#nav .links{font-size:14px;gap:14px}}
+
+/* ---------- Hero: the viewfinder ---------- */
+#hero{position:relative;height:100svh;min-height:560px;color:#fff;overflow:hidden}
+#hero .ph{position:absolute;inset:0;cursor:none}
+#hero .hud{position:absolute;inset:0;z-index:30;pointer-events:none;font:500 12px/1.5 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+#hero .hud .corner{position:absolute;width:38px;height:38px;border:1.5px solid rgba(255,255,255,.9)}
+#hero .hud .tl{left:var(--gutter);top:calc(var(--nav-h) + 8px);border-right:0;border-bottom:0}
+#hero .hud .tr{right:var(--gutter);top:calc(var(--nav-h) + 8px);border-left:0;border-bottom:0}
+#hero .hud .bl{left:var(--gutter);bottom:var(--gutter);border-right:0;border-top:0}
+#hero .hud .br{right:var(--gutter);bottom:var(--gutter);border-left:0;border-top:0}
+#hero .hud .rd{position:absolute;opacity:.92;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+#hero .hud .rd-tl{left:calc(var(--gutter) + 52px);top:calc(var(--nav-h) + 12px)}
+#hero .hud .rd-tr{right:calc(var(--gutter) + 52px);top:calc(var(--nav-h) + 12px);text-align:right}
+#hero .hud .rd-bl{left:calc(var(--gutter) + 52px);bottom:calc(var(--gutter) + 2px)}
+#hero .hud .rd-br{right:calc(var(--gutter) + 52px);bottom:calc(var(--gutter) + 2px);text-align:right}
+#hero .hud .rd-br b{color:var(--amber);font-weight:500}
+#hero .focus{position:absolute;left:0;top:0;width:96px;height:64px;transform:translate(-50%,-50%);will-change:transform;transition:opacity .3s}
+#hero .focus::before,#hero .focus::after,#hero .focus i::before,#hero .focus i::after{content:"";position:absolute;width:14px;height:14px;border:1.5px solid var(--amber)}
+#hero .focus::before{left:0;top:0;border-right:0;border-bottom:0}
+#hero .focus::after{right:0;top:0;border-left:0;border-bottom:0}
+#hero .focus i::before{left:0;bottom:0;border-right:0;border-top:0}
+#hero .focus i::after{right:0;bottom:0;border-left:0;border-top:0}
+#hero .focus span{position:absolute;left:50%;top:100%;transform:translate(-50%,8px);color:var(--amber);white-space:nowrap}
+#hero .name{position:absolute;z-index:30;left:var(--gutter);right:var(--gutter);bottom:calc(var(--gutter) + 52px);pointer-events:none;mix-blend-mode:difference;color:#fff}
+#hero .name h1{font-weight:800;font-stretch:62%;font-size:clamp(84px,19.5vw,330px);line-height:.82;letter-spacing:-.005em;text-transform:uppercase;display:flex;flex-wrap:wrap;column-gap:.18em}
+#hero .name h1 .w{display:inline-flex;overflow:hidden;padding-bottom:.06em}
+#hero .name h1 .c{display:inline-block;transform:translateY(110%);will-change:transform}
+#hero .name p{margin-top:18px;font-size:clamp(15px,1.35vw,20px);font-weight:400;max-width:34ch;line-height:1.35;opacity:0;transform:translateY(10px)}
+#hero .name p em{font-family:var(--serif);font-style:italic;font-size:1.14em;font-weight:400}
+@media (max-width:720px){
+  #hero .hud .rd-tr,#hero .hud .rd-bl{display:none}
+  #hero .name{bottom:calc(var(--gutter) + 56px)}
+  #hero .focus{display:none}
+}
+
+/* ---------- The Roll (pinned horizontal filmstrip) ---------- */
+#roll{position:relative;background:var(--black);color:var(--paper);height:100svh;min-height:560px;overflow:hidden}
+#roll .intro{position:absolute;left:var(--gutter);top:calc(var(--nav-h) + 24px);z-index:3;max-width:min(560px,80vw)}
+#roll .intro h2{font-weight:300;font-stretch:125%;font-size:clamp(22px,2.6vw,36px);line-height:1.15;letter-spacing:-.01em}
+#roll .intro p{margin-top:10px;font-size:15px;opacity:.7;max-width:46ch}
+#roll .strip{position:absolute;left:0;top:50%;transform:translateY(-50%);height:min(54svh,520px);display:flex;align-items:center;gap:clamp(18px,2.4vw,40px);padding:0 var(--gutter) 0 calc(var(--gutter) + 38vw);will-change:transform;background:linear-gradient(180deg,transparent 0 9%,var(--film) 9% 91%,transparent 91%)}
+#roll .strip::before,#roll .strip::after{content:"";position:absolute;left:0;right:0;height:9%;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='46' height='20' viewBox='0 0 46 20'%3E%3Crect x='10' y='4' width='26' height='12' rx='2.5' fill='%231d1512'/%3E%3C/svg%3E");background-repeat:repeat-x;background-size:46px 100%}
+#roll .strip::before{top:0}
+#roll .strip::after{bottom:0}
+#roll .frame{position:relative;flex:0 0 auto;height:72%;display:flex;flex-direction:column;justify-content:center}
+#roll .frame .ph{height:100%;aspect-ratio:var(--ar);cursor:pointer}
+#roll .frame .no{position:absolute;left:0;top:-18px;font:500 10px/1 var(--mono);letter-spacing:.08em;color:#b89c7a}
+#roll .frame .no.b{top:auto;bottom:-18px}
+#roll .marker{flex:0 0 auto;align-self:center;height:72%;display:flex;align-items:flex-end;padding-bottom:4px;margin:0 clamp(6px,1vw,16px)}
+#roll .marker span{font-family:var(--serif);font-style:italic;font-size:clamp(28px,4vw,60px);line-height:.9;color:var(--paper);writing-mode:vertical-rl;transform:rotate(180deg);opacity:.9}
+#roll .leak{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 80% at 110% 40%,rgba(242,169,59,.22),transparent 60%),radial-gradient(40% 60% at -10% 70%,rgba(242,120,59,.14),transparent 60%);mix-blend-mode:screen;opacity:.8}
+#roll .hint{position:absolute;right:var(--gutter);bottom:var(--gutter);font:500 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;opacity:.6}
+
+/* ---------- Chapters on the gray card ---------- */
+#chapters{background:var(--gray);color:var(--ink);padding:calc(var(--gutter)*2) 0 calc(var(--gutter)*3)}
+.chapter{position:relative;padding:calc(var(--gutter)*2.5) var(--gutter) calc(var(--gutter)*2)}
+.chapter + .chapter{border-top:1px solid rgba(0,0,0,.14)}
+.ch-head{display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gutter);align-items:end;margin-bottom:calc(var(--gutter)*1.5)}
+.ch-head h2{grid-column:1 / span 8;font-weight:300;font-stretch:125%;font-size:clamp(44px,8vw,128px);line-height:.95;letter-spacing:-.02em;color:var(--ink)}
+.ch-head h2 .c{display:inline-block;transform:translateY(100%);opacity:0}
+.ch-head h2 .w{display:inline-block;overflow:hidden;padding-bottom:.08em;margin-bottom:-.08em}
+.ch-head .voice{grid-column:9 / span 4;font-family:var(--serif);font-style:italic;font-size:clamp(22px,2.2vw,32px);line-height:1.1;color:var(--paper);justify-self:end;text-align:right;max-width:18ch}
+.ch-head .count{grid-column:1 / -1;margin-top:10px;font:500 12px/1 var(--mono);letter-spacing:.08em;color:rgba(0,0,0,.6)}
+.ch-grid{display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gutter);row-gap:calc(var(--gutter)*2);align-items:start}
+.ch-grid .ph{grid-column:var(--gc);margin-top:var(--mt,0);aspect-ratio:var(--ar);cursor:pointer;color:var(--ink);will-change:transform}
+.ch-grid .ph .tag{opacity:.6}
+.ch-grid .ph .tag b{font-weight:500;margin-left:.8em;opacity:.8}
+@media (max-width:900px){
+  .ch-head h2{grid-column:1 / -1}
+  .ch-head .voice{grid-column:1 / -1;justify-self:start;text-align:left;margin-top:12px}
+  .ch-grid .ph{grid-column:var(--gc-m, 1 / -1);margin-top:0}
+}
+
+/* ---------- Contact sheet CTA ---------- */
+#sheet-cta{background:var(--gray);color:var(--ink);padding:0 var(--gutter) calc(var(--gutter)*4)}
+#sheet-cta .box{position:relative;border:1.5px solid var(--ink);padding:clamp(28px,4vw,56px);display:grid;grid-template-columns:1fr auto;gap:var(--gutter);align-items:center;cursor:pointer;transition:background .3s,color .3s}
+#sheet-cta .box:hover{background:var(--ink);color:var(--paper)}
+#sheet-cta h2{font-weight:300;font-stretch:125%;font-size:clamp(28px,4.2vw,64px);line-height:1;letter-spacing:-.02em}
+#sheet-cta p{margin-top:12px;font-size:16px;max-width:48ch;opacity:.8}
+#sheet-cta .ring{width:clamp(72px,9vw,120px);aspect-ratio:1;border-radius:50%;border:1.5px solid currentColor;display:grid;place-items:center;position:relative}
+#sheet-cta .ring::before{content:"";width:40%;aspect-ratio:1;border-radius:50%;border:1.5px dashed currentColor;transition:transform .6s cubic-bezier(.65,0,.35,1)}
+#sheet-cta .box:hover .ring::before{transform:rotate(180deg) scale(1.4)}
+@media (max-width:720px){#sheet-cta .box{grid-template-columns:1fr}#sheet-cta .ring{display:none}}
+
+/* ---------- About + contact on paper ---------- */
+#about{background:var(--paper);color:var(--ink);padding:calc(var(--gutter)*3) var(--gutter)}
+#about .grid{display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gutter);row-gap:calc(var(--gutter)*1.5);align-items:start}
+#about .ph{grid-column:1 / span 5;aspect-ratio:var(--ar);color:var(--ink)}
+#about .txt{grid-column:7 / span 6}
+#about h2{font-weight:300;font-stretch:125%;font-size:clamp(34px,4.6vw,72px);line-height:1;letter-spacing:-.02em;max-width:14ch}
+#about .lead{margin-top:28px;font-family:var(--serif);font-style:italic;font-size:clamp(22px,2.1vw,30px);line-height:1.25;max-width:30ch}
+#about .body{margin-top:24px;font-size:clamp(16px,1.2vw,19px);line-height:1.5;max-width:56ch}
+#about .body + .body{margin-top:14px}
+#about .work{margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:var(--gutter)}
+#about .work h3{font-weight:500;font-size:14px;letter-spacing:.01em;opacity:.6;margin-bottom:10px}
+#about .work ul{list-style:none;font-size:clamp(16px,1.2vw,18px);line-height:1.55}
+#about .work li{padding:4px 0;border-bottom:1px solid rgba(14,13,12,.14)}
+@media (max-width:900px){#about .ph{grid-column:1 / span 8}#about .txt{grid-column:1 / -1}}
+@media (max-width:560px){#about .work{grid-template-columns:1fr}}
+
+#contact{background:var(--paper);color:var(--ink);padding:calc(var(--gutter)*2) 0 0;overflow:hidden}
+#contact .inner{padding:0 var(--gutter) calc(var(--gutter)*2);display:grid;grid-template-columns:repeat(12,1fr);column-gap:var(--gutter);row-gap:var(--gutter)}
+#contact h2{grid-column:1 / span 7;font-weight:800;font-stretch:62%;font-size:clamp(64px,12vw,200px);line-height:.85;letter-spacing:-.005em;text-transform:uppercase}
+#contact .ways{grid-column:8 / span 5;align-self:end;display:flex;flex-direction:column;gap:14px;font-size:clamp(17px,1.4vw,22px)}
+#contact .ways a{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1.5px solid var(--ink);transition:padding-left .35s cubic-bezier(.65,0,.35,1)}
+#contact .ways a:hover{padding-left:10px}
+#contact .ways small{font-size:14px;opacity:.6}
+#contact .marquee{border-top:1.5px solid var(--ink);padding:18px 0;white-space:nowrap;overflow:hidden;font-weight:300;font-stretch:125%;font-size:clamp(20px,2.4vw,34px)}
+#contact .marquee div{display:inline-block;animation:mq 28s linear infinite}
+#contact .marquee span{display:inline-block;padding-right:2.5em}
+@keyframes mq{to{transform:translateX(-50%)}}
+#contact .foot{display:flex;justify-content:space-between;gap:16px;padding:14px var(--gutter) 22px;font-size:13px;opacity:.6}
+@media (max-width:900px){#contact h2{grid-column:1 / -1}#contact .ways{grid-column:1 / -1}}
+
+/* ---------- Overlays: the print (lightbox) + the sheet (infinite grid) ---------- */
+.ov{position:fixed;inset:0;z-index:50;display:none;color:#fff}
+.ov.on{display:block}
+.ov .ui{position:absolute;inset:0;pointer-events:none;font:500 12px/1.5 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.ov .ui > *{pointer-events:auto}
+.ov .ui .top{position:absolute;left:var(--gutter);right:var(--gutter);top:calc(var(--nav-h) - 44px);display:flex;justify-content:space-between;align-items:center}
+.ov .ui .close{display:inline-flex;align-items:center;gap:10px;padding:8px 0;font:inherit;letter-spacing:inherit;text-transform:inherit}
+.ov .ui .close i{width:30px;height:30px;border:1.5px solid currentColor;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:14px}
+#print .ui .bottom{position:absolute;left:var(--gutter);right:var(--gutter);bottom:var(--gutter);display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+#print .ui .cap{font:400 clamp(20px,2vw,28px)/1.1 var(--serif);font-style:italic;text-transform:none;letter-spacing:0}
+#print .ui .cap small{display:block;margin-top:8px;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;opacity:.7}
+#print .ui .cnt{font:500 clamp(28px,4vw,56px)/1 var(--mono);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+#print .ui .cnt small{font-size:.4em;opacity:.6;margin-left:.3em}
+#print .ui .arrow{position:absolute;top:50%;transform:translateY(-50%);width:min(18vw,160px);height:50vh;display:flex;align-items:center;justify-content:center;opacity:.9;font-size:28px;font-family:var(--font);font-weight:300;cursor:pointer}
+#print .ui .arrow.prev{left:0}
+#print .ui .arrow.next{right:0}
+#print .ui .hint{position:absolute;left:50%;bottom:var(--gutter);transform:translateX(-50%);opacity:.55}
+#print .hit{position:absolute;inset:0;cursor:none}
+#sheet .ui .top{top:calc(var(--nav-h) - 44px)}
+#sheet .ui .top .lbl{display:flex;gap:1.5em;align-items:center}
+#sheet .ui .top .lbl button{font:inherit;letter-spacing:inherit;text-transform:inherit;padding:8px 0;position:relative}
+#sheet .ui .top .lbl button::after{content:"";position:absolute;left:0;right:100%;bottom:4px;height:1px;background:currentColor;transition:right .35s}
+#sheet .ui .top .lbl button:hover::after{right:0}
+#sheet .ui .hint{position:absolute;left:50%;bottom:var(--gutter);transform:translateX(-50%);opacity:.55;white-space:nowrap}
+#sheet .drag{position:absolute;inset:0;cursor:grab;touch-action:none}
+#sheet .drag.dragging{cursor:grabbing}
+@media (max-width:720px){#print .ui .arrow{width:22vw}#print .ui .cnt{font-size:28px}#print .ui .cap{font-size:18px}}
+
+/* ---------- Cursor ---------- */
+#cur{position:fixed;left:0;top:0;z-index:200;pointer-events:none;width:28px;height:28px;margin:-14px 0 0 -14px;border:1.5px solid #fff;border-radius:50%;transition:width .25s,height .25s,margin .25s,border-color .25s,opacity .3s;opacity:0}
+#cur::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;background:#fff;border-radius:50%;transition:transform .25s}
+#cur span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#fff;opacity:0;transition:opacity .2s;white-space:nowrap}
+#cur.show{opacity:1}
+#cur.big{width:72px;height:72px;margin:-36px 0 0 -36px}
+#cur.big::after{transform:scale(0)}
+#cur.big span{opacity:1}
+#cur.ink{border-color:var(--ink)}
+#cur.ink::after{background:var(--ink)}
+#cur.ink span{color:var(--ink)}
+#cur.aim{width:44px;height:44px;margin:-22px 0 0 -22px;border-color:var(--amber) !important}
+#cur.aim::after{background:var(--amber) !important}
+#cur.hide{opacity:0}
+@media (hover:none){#cur{display:none}}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion:reduce){
+  #contact .marquee div{animation:none}
+}
+</style>
+</head>
+<body class="locked">
+
+<canvas id="gl" aria-hidden="true"></canvas>
+
+<!-- Loader iris -->
+<div id="iris" aria-hidden="true">
+  <div class="center">
+    <div class="count"><span id="iris-n">00</span><small>/ 26</small></div>
+    <div class="lbl">Loading the roll</div>
+  </div>
+</div>
+
+<!-- Nav -->
+<header id="nav">
+  <a class="mark" href="#top" data-scroll>Luca Siletti</a>
+  <div class="readout" aria-live="polite"><span class="ch" id="ro-ch">Viewfinder</span><span id="ro-fr">01/26</span></div>
+  <nav class="links">
+    <button type="button" id="open-sheet">Index</button>
+    <a href="#about" data-scroll>About</a>
+    <a href="#contact" data-scroll>Contact</a>
+    <button type="button" class="snd" id="snd" aria-pressed="false" aria-label="Toggle shutter sound"><span class="off">Sound off</span><span class="on">Sound on</span></button>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- Hero: the viewfinder -->
+  <section id="hero" aria-label="Viewfinder">
+    <figure class="ph hero-ph" id="hero-ph"></figure>
+    <div class="hud" aria-hidden="true">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="rd rd-tl">Luca Siletti<br>Photographer and filmmaker</div>
+      <div class="rd rd-tr">Boston, MA<br>Shooting since 2019</div>
+      <div class="rd rd-bl">Click to shoot<br>Scroll to develop</div>
+      <div class="rd rd-br">Frame <b id="hero-fr">03</b>/26<br><span id="hero-fname">Golden hour</span></div>
+      <div class="focus" id="focus"><i></i><span>Focus</span></div>
+    </div>
+    <div class="name">
+      <h1 aria-label="Luca Siletti"><span class="w" aria-hidden="true"></span></h1>
+      <p>Photographer and filmmaker working out of Boston. <em>Raw, authentic, controlled</em> pictures, made in the places where things actually happen.</p>
+    </div>
+  </section>
+
+  <!-- The roll -->
+  <section id="roll" aria-label="The roll">
+    <div class="leak"></div>
+    <div class="intro">
+      <h2>Twenty-six frames, one roll. Everything on this site is on this strip.</h2>
+      <p>Scroll to advance the film. Click any frame to pull the print.</p>
+    </div>
+    <div class="strip" id="strip"></div>
+    <div class="hint">Keep scrolling</div>
+  </section>
+
+  <!-- Chapters -->
+  <div id="chapters"></div>
+
+  <!-- Contact sheet CTA -->
+  <section id="sheet-cta" aria-label="Open the contact sheet">
+    <div class="box" id="sheet-cta-box" role="button" tabindex="0">
+      <div>
+        <h2>Lay out the whole contact sheet.</h2>
+        <p>Every frame on one endless table. Drag in any direction, hover to bring a frame to life, click to pull the print.</p>
+      </div>
+      <div class="ring" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about" aria-label="About Luca">
+    <div class="grid">
+      <figure class="ph" id="about-ph" style="--ar:0.7225"></figure>
+      <div class="txt">
+        <h2>Behind the camera since 2019.</h2>
+        <p class="lead">“Raw, authentic-yet-controlled visuals and environmental storytelling.”</p>
+        <p class="body">Luca is a Boston-based photographer and filmmaker. He was born in the United Kingdom, grew up in Maine, and started shooting in 2019 while working in marketing for Maine Media Workshops &amp; College, where a long obsession with visual storytelling turned into a working craft. He moved to Boston in 2024.</p>
+        <p class="body">Off set he travels, and on weekends he watches Arsenal.</p>
+        <div class="work">
+          <div>
+            <h3>Photography</h3>
+            <ul><li>Portraiture</li><li>Brand editorials</li><li>Fashion shows</li><li>Album covers</li><li>Fine art</li></ul>
+          </div>
+          <div>
+            <h3>Film and set</h3>
+            <ul><li>Music videos</li><li>Social and marketing content</li><li>Director of photography</li><li>Assistant director</li><li>1st and 2nd AC, gaffer</li></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" aria-label="Contact">
+    <div class="inner">
+      <h2>Let’s<br>collaborate</h2>
+      <div class="ways">
+        <a href="https://www.instagram.com/lucabehindthecamera/" target="_blank" rel="noopener">Instagram <small>@lucabehindthecamera</small></a>
+        <a href="https://www.lucasiletti.com/about" target="_blank" rel="noopener">Send a brief <small>contact form</small></a>
+        <span><small>Based in Boston. Travels for work.</small></span>
+      </div>
+    </div>
+    <div class="marquee" aria-hidden="true"><div><span>Portraits</span><span>Stage</span><span>Street</span><span>Land</span><span>Studio</span><span>Film</span><span>Portraits</span><span>Stage</span><span>Street</span><span>Land</span><span>Studio</span><span>Film</span></div></div>
+    <div class="foot"><span>© 2026 Luca Siletti</span><span>All photographs by Luca Siletti</span></div>
+  </section>
+
+</main>
+
+<!-- The print (lightbox) -->
+<div class="ov" id="print" role="dialog" aria-modal="true" aria-label="Print view">
+  <div class="hit" id="print-hit"></div>
+  <div class="ui">
+    <div class="top">
+      <span id="print-ch">Portraits</span>
+      <button type="button" class="close" id="print-close">Close <i>×</i></button>
+    </div>
+    <button type="button" class="arrow prev" id="print-prev" aria-label="Previous frame">←</button>
+    <button type="button" class="arrow next" id="print-next" aria-label="Next frame">→</button>
+    <div class="bottom">
+      <div class="cap"><span id="print-title">Golden hour</span><small id="print-meta">Frame 03</small></div>
+      <div class="cnt"><span id="print-n">03</span><small>/ 26</small></div>
+    </div>
+    <div class="hint" id="print-hint">Hover to inspect the print</div>
+  </div>
+</div>
+
+<!-- The contact sheet (infinite grid) -->
+<div class="ov" id="sheet" role="dialog" aria-modal="true" aria-label="Contact sheet">
+  <div class="drag" id="sheet-drag"></div>
+  <div class="ui">
+    <div class="top">
+      <div class="lbl"><span>Contact sheet</span><button type="button" id="sheet-shuffle">Shuffle</button></div>
+      <button type="button" class="close" id="sheet-close">Close <i>×</i></button>
+    </div>
+    <div class="hint">Drag anywhere. Click a frame to pull the print.</div>
+  </div>
+</div>
+
+<div id="cur" aria-hidden="true"><span></span></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.14.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.14.2/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.27/dist/lenis.min.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdnjs.cloudflare.com/ajax/libs/three.js/0.187.0/three.module.min.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+
+/* =====================================================================
+   0. Config + data
+   ===================================================================== */
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TOUCH   = matchMedia('(hover: none)').matches;
+const IMG_MODE = 'remote'; // 'remote' = Wix CDN with size transforms | 'local' = ./img/NN-WIDTH.webp
+const SIZES = { dom: 480, tex: (TOUCH || innerWidth < 900) ? 900 : 1200, hi: 2000 };
+const WIX = (id, w) => `https://static.wixstatic.com/media/244304_${id}~mv2.jpg/v1/fit/w_${w},h_${w},q_86/frame.jpg`;
+const pad2 = n => String(n).padStart(2, '0');
+const imgSrc = (p, w) => IMG_MODE === 'remote' ? WIX(p.id, w) : `img/${pad2(p.n)}-${w}.webp`;
+
+const PHOTOS = [
+  {n:1,  id:'93684966ead54af995877fa1acca1ad2', ar:1.5,    t:'Camel'},
+  {n:2,  id:'250763935a5641bba5890284fb59548d', ar:0.6663, t:'Hands'},
+  {n:3,  id:'22dc28cddb234586b14e0b75c8c62d8b', ar:1.5,    t:'Golden hour'},
+  {n:4,  id:'43ee9a37c9d94eef8175c1e3a203c8c7', ar:1.5,    t:'Underground'},
+  {n:5,  id:'a99e1c3c383b4ca4b4a394e641c6fce2', ar:1.5,    t:'Kayak'},
+  {n:6,  id:'53bb1fb1bb574f869199db1bedda2332', ar:1.5,    t:'Ensemble'},
+  {n:7,  id:'228989b2c06641e1b3966cb59c0c0fc6', ar:1.5,    t:'Overhead'},
+  {n:8,  id:'a3ac31a2ade5406e8196501380d53fc1', ar:1.5094, t:'Soundcheck'},
+  {n:9,  id:'8310c659c1154d07a6c3a78071d92e2b', ar:0.6663, t:'Plaid'},
+  {n:10, id:'f7a070b394324a9d9b7c04d86cdd11b7', ar:0.6663, t:'Saxophone'},
+  {n:11, id:'4f561cc2080f4c3b90170d2fb9792d09', ar:1.5094, t:'Look up'},
+  {n:12, id:'997fac9eae234c27ac6091d46d30fffa', ar:0.6625, t:'Snow'},
+  {n:13, id:'bb7690f2a59646c0b9e712e4e9108cc5', ar:0.6663, t:'Kettle'},
+  {n:14, id:'0067d02390874f0c9a23f30b63f63af0', ar:0.6663, t:'Blue cap'},
+  {n:15, id:'c644733b13964d5ca10e5b7fe07c9980', ar:1.5,    t:'Blue hour'},
+  {n:16, id:'4a80f2d38b53450eb8bf942f915851a1', ar:0.6663, t:'Side light'},
+  {n:17, id:'bd1774eb549843f2b2bd2a8518319855', ar:0.6671, t:'Point and shoot'},
+  {n:18, id:'175c0bc580f7421a83f1026f0726d05d', ar:0.6663, t:'Peace'},
+  {n:19, id:'69f0c829fa3e426897057638da057557', ar:1.5,    t:'Hills'},
+  {n:20, id:'5d0a1528a19d41e4bd69da7b2685f85a', ar:1.5,    t:'Dunes'},
+  {n:21, id:'5c4f857d527c4009bc152b5f772f8600', ar:1.5,    t:'Dog'},
+  {n:22, id:'9b2563fe6fd6403dade6909f8067ffa5', ar:1.5,    t:'Walk'},
+  {n:23, id:'08b2286e71cb4b57860d300f65fedd3b', ar:1.5,    t:'Runway'},
+  {n:24, id:'7efb27f4668e45d8a6145098d40464df', ar:0.6663, t:'Chin'},
+  {n:25, id:'f32a278a662b4f2ba32546653e5baf7f', ar:1.5,    t:'Clasped'},
+  {n:26, id:'dea9c20815924db883c969ff95436e41', ar:1.5,    t:'Tiles'},
+];
+const PORTRAIT = { n:0, id:'3d987dbbe4204cb1b330007d380f9bad', ar:0.7225, t:'Luca, Boston' };
+const P = n => n === 0 ? PORTRAIT : PHOTOS[n - 1];
+
+// layout per chapter: gc = grid-column (12 cols), mt = extra top offset, sp = parallax speed, gm = mobile grid-column
+const CHAPTERS = [
+  { key:'portraits', title:'Portraits', voice:'Hold still. Breathe.', items:[
+    {n:2,  gc:'1 / span 4',  mt:'0',     sp:1.0,  gm:'1 / span 7'},
+    {n:24, gc:'6 / span 3',  mt:'14vh',  sp:1.18, gm:'8 / span 5'},
+    {n:25, gc:'7 / span 6',  mt:'0',     sp:0.94, gm:'1 / -1'},
+    {n:16, gc:'2 / span 3',  mt:'-8vh',  sp:1.1,  gm:'1 / span 6'},
+    {n:12, gc:'8 / span 4',  mt:'10vh',  sp:1.22, gm:'7 / span 6'},
+    {n:3,  gc:'1 / span 7',  mt:'0',     sp:0.9,  gm:'1 / -1'},
+  ]},
+  { key:'stage', title:'Stage', voice:'Loud rooms, slow shutters.', items:[
+    {n:10, gc:'1 / span 4',  mt:'0',     sp:1.0,  gm:'1 / span 6'},
+    {n:8,  gc:'5 / span 8',  mt:'18vh',  sp:0.92, gm:'1 / -1'},
+    {n:14, gc:'9 / span 3',  mt:'0',     sp:1.2,  gm:'7 / span 6'},
+    {n:23, gc:'1 / span 7',  mt:'-12vh', sp:0.96, gm:'1 / -1'},
+  ]},
+  { key:'street', title:'Street', voice:'Nothing staged.', items:[
+    {n:4,  gc:'1 / span 6',  mt:'0',     sp:1.0,  gm:'1 / -1'},
+    {n:11, gc:'8 / span 5',  mt:'12vh',  sp:1.14, gm:'1 / span 8'},
+    {n:18, gc:'3 / span 3',  mt:'0',     sp:1.08, gm:'8 / span 5'},
+    {n:21, gc:'7 / span 6',  mt:'16vh',  sp:0.92, gm:'1 / -1'},
+    {n:26, gc:'1 / span 8',  mt:'0',     sp:1.0,  gm:'1 / -1'},
+  ]},
+  { key:'land', title:'Land', voice:'Wide open.', items:[
+    {n:1,  gc:'1 / span 8',  mt:'0',     sp:1.0,  gm:'1 / -1'},
+    {n:19, gc:'9 / span 4',  mt:'22vh',  sp:1.2,  gm:'1 / span 8'},
+    {n:20, gc:'1 / span 12', mt:'0',     sp:0.9,  gm:'1 / -1'},
+    {n:15, gc:'1 / span 5',  mt:'0',     sp:1.05, gm:'1 / span 8'},
+    {n:5,  gc:'7 / span 6',  mt:'10vh',  sp:0.95, gm:'1 / -1'},
+    {n:13, gc:'4 / span 4',  mt:'0',     sp:1.12, gm:'4 / span 6'},
+  ]},
+  { key:'studio', title:'Studio', voice:'Controlled chaos.', items:[
+    {n:6,  gc:'1 / span 7',  mt:'0',     sp:1.0,  gm:'1 / -1'},
+    {n:22, gc:'8 / span 5',  mt:'16vh',  sp:1.16, gm:'1 / -1'},
+    {n:7,  gc:'3 / span 7',  mt:'0',     sp:0.94, gm:'1 / -1'},
+    {n:9,  gc:'1 / span 4',  mt:'0',     sp:1.06, gm:'1 / span 6'},
+    {n:17, gc:'6 / span 4',  mt:'-10vh', sp:1.18, gm:'7 / span 6'},
+  ]},
+];
+const chapterOf = n => CHAPTERS.find(c => c.items.some(i => i.n === n));
+const HERO_SEQ = [3, 20, 2, 10, 15, 23, 1, 16];
+
+/* =====================================================================
+   1. Helpers
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const el = (tag, cls) => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const alt = p => `Photograph by Luca Siletti: ${p.t}`;
+const splitChars = (text) => text.split(' ').map(w => `<span class="w">${[...w].map(c => `<span class="c">${c}</span>`).join('')}</span>`).join(' ');
+let W = innerWidth, H = innerHeight;
+
+/* =====================================================================
+   2. WebGL support check
+   ===================================================================== */
+let GL = true;
+try { const c = document.createElement('canvas'); GL = !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { GL = false; }
+if (!GL) document.documentElement.classList.add('nogl');
+if (!TOUCH) document.documentElement.classList.add('cur');
+
+/* =====================================================================
+   3. Build DOM: hero name, strip, chapters
+   ===================================================================== */
+$('#hero .name h1').innerHTML = splitChars('Luca Siletti');
+
+function photoFigure(p, extraCls = '') {
+  const f = el('figure', 'ph ' + extraCls);
+  f.dataset.n = p.n; f.style.setProperty('--ar', p.ar);
+  const img = el('img'); img.alt = alt(p); img.loading = 'lazy'; img.decoding = 'async';
+  if (!GL) img.src = imgSrc(p, SIZES.tex);
+  f.appendChild(img);
+  return f;
+}
+
+const strip = $('#strip');
+CHAPTERS.forEach(ch => {
+  const m = el('div', 'marker'); m.innerHTML = `<span>${ch.title}</span>`; strip.appendChild(m);
+  ch.items.forEach(it => {
+    const p = P(it.n);
+    const fr = el('div', 'frame');
+    const a = el('span', 'no'); a.textContent = pad2(p.n);
+    const b = el('span', 'no b'); b.textContent = pad2(p.n) + 'A';
+    fr.appendChild(a); fr.appendChild(photoFigure(p)); fr.appendChild(b);
+    strip.appendChild(fr);
+  });
+});
+
+const chaptersRoot = $('#chapters');
+CHAPTERS.forEach(ch => {
+  const sec = el('section', 'chapter'); sec.id = ch.key; sec.dataset.title = ch.title;
+  sec.innerHTML = `<header class="ch-head"><h2 aria-label="${ch.title}">${splitChars(ch.title)}</h2><p class="voice">${ch.voice}</p><div class="count">${ch.items.length} frames</div></header><div class="ch-grid"></div>`;
+  const grid = sec.querySelector('.ch-grid');
+  ch.items.forEach(it => {
+    const p = P(it.n);
+    const f = photoFigure(p);
+    f.style.setProperty('--gc', it.gc); f.style.setProperty('--mt', it.mt); f.style.setProperty('--gc-m', it.gm);
+    f.dataset.sp = it.sp;
+    const cap = el('figcaption', 'tag'); cap.innerHTML = `${pad2(p.n)}<b>${p.t}</b>`; f.appendChild(cap);
+    grid.appendChild(f);
+  });
+  chaptersRoot.appendChild(sec);
+});
+
+// hero + about figures
+const heroFig = $('#hero-ph'); heroFig.dataset.n = HERO_SEQ[0];
+{ const img = el('img'); img.alt = alt(P(HERO_SEQ[0])); if (!GL) img.src = imgSrc(P(HERO_SEQ[0]), SIZES.hi); heroFig.appendChild(img); }
+const aboutFig = $('#about-ph'); aboutFig.dataset.n = 0;
+{ const img = el('img'); img.alt = alt(PORTRAIT); if (!GL) img.src = imgSrc(PORTRAIT, SIZES.tex); aboutFig.appendChild(img); }
+
+/* =====================================================================
+   4. Iris loader (8 blades)
+   ===================================================================== */
+const iris = $('#iris');
+const blades = Array.from({ length: 8 }, () => { const b = el('div', 'blade'); iris.insertBefore(b, iris.firstChild); return b; });
+const irisState = { o: 0 };
+function setIris(o) {
+  const diag = Math.hypot(W, H);
+  const d = o * diag * 0.78, L = diag * 2.2, twist = o * 40;
+  blades.forEach((b, i) => {
+    const a = i * 45 + twist, r = a * Math.PI / 180;
+    const cx = Math.cos(r) * (d + L / 2), cy = Math.sin(r) * (d + L / 2);
+    b.style.width = L + 'px'; b.style.height = diag * 3 + 'px';
+    b.style.transform = `translate(-50%,-50%) translate(${cx}px,${cy}px) rotate(${a}deg)`;
+  });
+  iris.style.pointerEvents = o > 0.95 ? 'none' : 'auto';
+}
+setIris(0);
+
+/* =====================================================================
+   5. Shaders
+   ===================================================================== */
+const NOISE = /* glsl */`
+  float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
+  float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
+    return mix(mix(hash(i), hash(i+vec2(1,0)), f.x), mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x), f.y); }
+  float fbm(vec2 p){ float v = 0.0, a = 0.5; for(int i=0;i<4;i++){ v += a*noise(p); p *= 2.03; a *= 0.5; } return v; }
+  vec2 coverUv(vec2 uv, vec2 res, vec2 img){ float rs = res.x/res.y, ri = img.x/img.y;
+    vec2 s = rs < ri ? vec2(ri/rs, 1.0) : vec2(1.0, rs/ri); return (uv - 0.5) / s + 0.5; }
+`;
+
+const VERT_PHOTO = /* glsl */`
+  uniform float uVel; uniform vec2 uDir; uniform float uHover; uniform float uDish;
+  varying vec2 vUv;
+  void main(){
+    vUv = uv;
+    vec3 p = position;
+    float t = dot(uv, uDir);
+    p.z += sin(t * 3.14159) * uVel;            // film curl with scroll velocity
+    p.z += uHover * 14.0;                        // lift on hover
+    vec4 wp = modelMatrix * vec4(p, 1.0);
+    wp.z -= dot(wp.xy, wp.xy) * uDish;           // concave contact-sheet dish
+    gl_Position = projectionMatrix * viewMatrix * wp;
+  }
+`;
+
+const FRAG_PHOTO = /* glsl */`
+  uniform sampler2D uTex; uniform vec2 uRes; uniform vec2 uImgRes; uniform float uHasTex;
+  uniform float uDevelop; uniform float uHover; uniform vec2 uMouse; uniform float uTime; uniform float uSeed;
+  uniform float uGray; uniform float uOpacity; uniform vec3 uPaper; uniform float uBlur;
+  varying vec2 vUv;
+  ${NOISE}
+  void main(){
+    vec2 uv = coverUv(vUv, uRes, uImgRes);
+    // hover: zoom toward pointer + soft liquid displacement
+    vec2 m = coverUv(clamp(uMouse, 0.0, 1.0), uRes, uImgRes);
+    uv = (uv - m) * (1.0 - 0.05 * uHover) + m;
+    float n1 = noise(uv * 5.0 + uTime * 0.35);
+    uv += (n1 - 0.5) * 0.022 * uHover;
+    vec3 col;
+    if (uBlur > 0.001) {
+      col = vec3(0.0);
+      for (int i = -3; i <= 3; i++) { col += texture2D(uTex, uv + vec2(float(i) * uBlur, 0.0)).rgb; }
+      col /= 7.0;
+    } else {
+      col = texture2D(uTex, uv).rgb;
+    }
+    if (uHover > 0.001) {
+      vec2 d = normalize(uv - m + 1e-4) * 0.006 * uHover;
+      col.r = texture2D(uTex, uv + d).r;
+      col.b = texture2D(uTex, uv - d).b;
+    }
+    float lum = dot(col, vec3(0.299, 0.587, 0.114));
+    // darkroom develop: dark tones come up first, then the midtones and highlights
+    float n = fbm(vUv * 3.0 + uSeed);
+    float k = 1.0 - ((1.0 - lum) * 0.55 + n * 0.45);
+    float reveal = smoothstep(k - 0.18, k + 0.18, uDevelop * 1.36);
+    vec3 sep = vec3(lum) * vec3(1.0, 0.86, 0.70);
+    vec3 dev = mix(sep, col, smoothstep(0.35, 1.0, uDevelop));
+    dev = mix(dev, vec3(lum), uGray);
+    vec3 outc = mix(uPaper, dev, reveal * uHasTex);
+    outc += (hash(vUv * uRes + fract(uTime)) - 0.5) * 0.09 * (1.0 - reveal * uHasTex);
+    gl_FragColor = vec4(outc, uOpacity);
+  }
+`;
+
+const FRAG_HERO = /* glsl */`
+  uniform sampler2D uTex; uniform sampler2D uTex2; uniform float uMix; uniform float uHasTex;
+  uniform vec2 uRes; uniform vec2 uImgRes; uniform vec2 uImgRes2; uniform vec2 uMouse; uniform vec2 uFocus;
+  uniform float uTime; uniform float uFlash; uniform float uFocusAmt; uniform float uOpacity; uniform float uDevelop;
+  varying vec2 vUv;
+  ${NOISE}
+  vec3 sampleBlur(sampler2D t, vec2 uv, float b){
+    if (b < 0.02) return texture2D(t, uv).rgb;
+    vec3 c = vec3(0.0); float px = b * 0.0025;
+    c += texture2D(t, uv, b * 2.2).rgb * 0.34;
+    c += texture2D(t, uv + vec2( px,  0.0), b * 2.0).rgb * 0.165;
+    c += texture2D(t, uv + vec2(-px,  0.0), b * 2.0).rgb * 0.165;
+    c += texture2D(t, uv + vec2(0.0,  px), b * 2.0).rgb * 0.165;
+    c += texture2D(t, uv + vec2(0.0, -px), b * 2.0).rgb * 0.165;
+    return c;
+  }
+  void main(){
+    vec2 m = uMouse / uRes - 0.5;
+    vec2 uv = (vUv - 0.5) * 0.93 + 0.5 - m * 0.018;      // slight overscan + parallax
+    vec2 uv1 = coverUv(uv, uRes, uImgRes);
+    vec2 uv2 = coverUv((uv - 0.5) * (1.0 + 0.08 * (1.0 - uMix)) + 0.5, uRes, uImgRes2);
+    float d = distance(vUv * uRes, uFocus);
+    float blur = smoothstep(90.0, 0.62 * max(uRes.x, uRes.y), d) * 3.2 * uFocusAmt;
+    vec3 a = sampleBlur(uTex, uv1, blur);
+    vec3 b = sampleBlur(uTex2, uv2, blur + 1.5 * (1.0 - uMix));
+    vec3 col = mix(a, b, smoothstep(0.0, 1.0, uMix));
+    // subtle chromatic fringe out of focus
+    float fr = blur * 0.0012;
+    col.r = mix(col.r, texture2D(uTex, uv1 + vec2(fr, 0.0), blur * 2.0).r, 0.5 * (1.0 - uMix));
+    col.b = mix(col.b, texture2D(uTex, uv1 - vec2(fr, 0.0), blur * 2.0).b, 0.5 * (1.0 - uMix));
+    float vig = 1.0 - smoothstep(0.45, 1.05, length(vUv - 0.5)) * 0.55;
+    col *= vig;
+    col *= uDevelop;
+    col = mix(col, vec3(1.0), uFlash);
+    gl_FragColor = vec4(col * uHasTex, uOpacity);
+  }
+`;
+
+const FRAG_PRINT = /* glsl */`
+  uniform sampler2D uTex; uniform vec2 uRes; uniform vec2 uImgRes; uniform float uHasTex;
+  uniform vec2 uMouse; uniform float uLoupe; uniform float uRadius; uniform float uZoom; uniform float uBlur; uniform float uOpacity; uniform float uTime;
+  varying vec2 vUv;
+  ${NOISE}
+  vec3 tex(vec2 uv){ return texture2D(uTex, uv).rgb; }
+  void main(){
+    vec2 uv = coverUv(vUv, uRes, uImgRes);
+    vec3 base;
+    if (uBlur > 0.0005) { base = vec3(0.0); for (int i = -4; i <= 4; i++) base += tex(uv + vec2(float(i) * uBlur, 0.0)); base /= 9.0; }
+    else base = tex(uv);
+    vec2 mpx = vUv * uRes;
+    float d = distance(mpx, uMouse);
+    float inside = 1.0 - smoothstep(uRadius - 1.5, uRadius + 0.5, d);
+    vec2 muv = uMouse / uRes;
+    float r = d / max(uRadius, 1.0);
+    vec2 zuv = (vUv - muv) / uZoom + muv;
+    zuv = (zuv - muv) * (1.0 + 0.18 * r * r) + muv;     // barrel inside the glass
+    zuv = coverUv(zuv, uRes, uImgRes);
+    vec2 ca = (zuv - coverUv(muv, uRes, uImgRes)) * 0.012 * r;
+    vec3 lens = vec3(tex(zuv + ca).r, tex(zuv).g, tex(zuv - ca).b);
+    lens *= 1.0 - 0.25 * r * r;                            // glass falloff
+    vec3 col = mix(base * (1.0 - 0.18 * uLoupe), lens, inside * uLoupe);
+    float rim = (smoothstep(uRadius - 2.5, uRadius, d) - smoothstep(uRadius, uRadius + 2.0, d));
+    col += rim * 0.55 * uLoupe;
+    float shadow = (smoothstep(uRadius, uRadius + 26.0, d)) * (1.0 - smoothstep(uRadius + 26.0, uRadius + 60.0, d));
+    col *= 1.0 - shadow * 0.35 * uLoupe;
+    gl_FragColor = vec4(col * uHasTex, uOpacity);
+  }
+`;
+
+const FRAG_GRAIN = /* glsl */`
+  uniform float uTime; uniform vec2 uRes; uniform float uAmt; varying vec2 vUv;
+  float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
+  void main(){ float n = hash(floor(vUv * uRes * 0.5) + fract(uTime * 7.0)); gl_FragColor = vec4(vec3(1.0 - uAmt * 0.5 + n * uAmt), 1.0); }
+`;
+const VERT_FLAT = /* glsl */`varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
+
+/* =====================================================================
+   6. Renderer, scenes, textures
+   ===================================================================== */
+const canvas = $('#gl');
+let renderer, camera, scenePage, sceneOv, sceneGrain, orthoCam, grainMesh, backdrop, dim, heroPl;
+const CAM_Z = 1000;
+const planeGeo = new THREE.PlaneGeometry(1, 1, 24, 24);
+const texCache = new Map();   // key -> THREE.Texture
+const texPending = new Map(); // key -> Promise
+let loadedCount = 0;
+const loader = new THREE.TextureLoader(); loader.setCrossOrigin('anonymous');
+
+function loadTex(p, w) {
+  const key = `${p.n}@${w}`;
+  if (texCache.has(key)) return Promise.resolve(texCache.get(key));
+  if (texPending.has(key)) return texPending.get(key);
+  const pr = new Promise(res => {
+    loader.load(imgSrc(p, w), t => {
+      t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.generateMipmaps = true;
+      t.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy()); t.colorSpace = THREE.NoColorSpace; t.needsUpdate = true;
+      texCache.set(key, t); texPending.delete(key);
+      if (w === SIZES.tex && p.n > 0) { loadedCount++; onTexLoaded(p, t); }
+      res(t);
+    }, undefined, () => { texPending.delete(key); res(null); });
+  });
+  texPending.set(key, pr);
+  return pr;
+}
+
+function uniformsPhoto(paper) {
+  return {
+    uTex: { value: null }, uRes: { value: new THREE.Vector2(1, 1) }, uImgRes: { value: new THREE.Vector2(3, 2) }, uHasTex: { value: 0 },
+    uDevelop: { value: 0 }, uHover: { value: 0 }, uMouse: { value: new THREE.Vector2(0.5, 0.5) }, uTime: { value: 0 }, uSeed: { value: Math.random() * 100 },
+    uGray: { value: 0 }, uOpacity: { value: 1 }, uPaper: { value: new THREE.Color(paper) }, uBlur: { value: 0 },
+    uVel: { value: 0 }, uDir: { value: new THREE.Vector2(0, 1) }, uDish: { value: 0 },
+  };
+}
+function makePhotoMesh(p, paper) {
+  const mat = new THREE.ShaderMaterial({ vertexShader: VERT_PHOTO, fragmentShader: FRAG_PHOTO, uniforms: uniformsPhoto(paper), transparent: true, depthTest: false, depthWrite: false });
+  const mesh = new THREE.Mesh(planeGeo, mat);
+  const tex = texCache.get(`${p.n}@${SIZES.tex}`);
+  if (tex) applyTex(mat, tex);
+  return mesh;
+}
+function applyTex(mat, tex) {
+  mat.uniforms.uTex.value = tex; mat.uniforms.uHasTex.value = 1;
+  mat.uniforms.uImgRes.value.set(tex.image.width, tex.image.height);
+}
+
+/* planes tracked to DOM figures */
+const planes = [];   // {el, mesh, p, kind, developed, hoverT, inView, seen}
+function trackFigure(fig, kind, paper) {
+  const p = P(+fig.dataset.n);
+  const mesh = makePhotoMesh(p, paper);
+  if (kind === 'roll') mesh.material.uniforms.uDir.value.set(1, 0);
+  mesh.visible = false; scenePage.add(mesh);
+  const pl = { el: fig, mesh, p, kind, developed: false, hoverT: 0, inView: false, rect: null };
+  planes.push(pl);
+  if (!TOUCH) {
+    fig.addEventListener('pointerenter', () => { pl.hoverT = 1; cursor.set('big', kind === 'about' ? '' : 'Open'); });
+    fig.addEventListener('pointerleave', () => { pl.hoverT = 0; cursor.set(''); });
+    fig.addEventListener('pointermove', e => { const r = pl.rect || fig.getBoundingClientRect(); mesh.material.uniforms.uMouse.value.set((e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height); });
+  }
+  if (kind !== 'about') fig.addEventListener('click', () => openPrint(p.n, fig.getBoundingClientRect(), 'page'));
+  return pl;
+}
+function onTexLoaded(p, tex) {
+  planes.forEach(pl => { if (pl.p.n === p.n) { applyTex(pl.mesh.material, tex); if (pl.inView && !pl.developed) develop(pl); } });
+  sheet.items.forEach(it => { if (it.p.n === p.n) applyTex(it.mesh.material, tex); });
+  if (loadedCount <= 26) $('#iris-n').textContent = pad2(Math.min(26, loadedCount));
+}
+function develop(pl, fast = false) {
+  if (pl.developed) return; pl.developed = true;
+  const u = pl.mesh.material.uniforms.uDevelop;
+  if (REDUCED) { u.value = 1; return; }
+  gsap.to(u, { value: 1, duration: fast ? 0.9 : 1.7, ease: 'power2.out', delay: fast ? 0 : 0.08 });
+}
+
+/* hero */
+let heroMesh, heroU, heroIdx = 0, heroBusy = false;
+const mouse = { x: W / 2, y: H / 2, tx: W / 2, ty: H / 2 };
+const focusPt = { x: W / 2, y: H / 2 };
+
+/* grain + backdrop */
+function initGL() {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  renderer.setSize(W, H, false);
+  renderer.setClearColor(0x000000, 0);
+  renderer.autoClear = false;
+  camera = new THREE.PerspectiveCamera(45, W / H, 10, 4000);
+  camera.position.z = CAM_Z;
+  scenePage = new THREE.Scene(); sceneOv = new THREE.Scene(); sceneGrain = new THREE.Scene();
+  orthoCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1); orthoCam.position.z = 0.5;
+  grainMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({ vertexShader: VERT_FLAT, fragmentShader: FRAG_GRAIN, uniforms: { uTime: { value: 0 }, uRes: { value: new THREE.Vector2(W, H) }, uAmt: { value: 0.16 } }, transparent: true, depthTest: false, blending: THREE.MultiplyBlending, premultipliedAlpha: true }));
+  sceneGrain.add(grainMesh);
+  backdrop = new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({ color: 0x050505, transparent: true, opacity: 0, depthTest: false, depthWrite: false }));
+  backdrop.position.z = -2; backdrop.renderOrder = -10; backdrop.visible = false; sceneOv.add(backdrop);
+  dim = new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({ color: 0x050505, transparent: true, opacity: 0, depthTest: false, depthWrite: false }));
+  dim.position.z = -1; dim.renderOrder = 5; dim.visible = false; sceneOv.add(dim);
+
+  // hero
+  heroU = {
+    uTex: { value: null }, uTex2: { value: null }, uMix: { value: 0 }, uHasTex: { value: 0 }, uRes: { value: new THREE.Vector2(W, H) },
+    uImgRes: { value: new THREE.Vector2(3, 2) }, uImgRes2: { value: new THREE.Vector2(3, 2) }, uMouse: { value: new THREE.Vector2(W / 2, H / 2) }, uFocus: { value: new THREE.Vector2(W / 2, H / 2) },
+    uTime: { value: 0 }, uFlash: { value: 0 }, uFocusAmt: { value: TOUCH ? 0.5 : 1 }, uOpacity: { value: 1 }, uDevelop: { value: 0 },
+  };
+  heroMesh = new THREE.Mesh(planeGeo, new THREE.ShaderMaterial({ vertexShader: VERT_FLAT, fragmentShader: FRAG_HERO, uniforms: heroU, transparent: true, depthTest: false, depthWrite: false }));
+  heroMesh.visible = false; scenePage.add(heroMesh);
+  heroPl = { el: heroFig, mesh: heroMesh, p: P(HERO_SEQ[0]), kind: 'hero', developed: true, hoverT: 0, inView: true, rect: null };
+  planes.push(heroPl);
+
+  setCamera();
+}
+function setCamera() {
+  camera.fov = 2 * Math.atan((H / 2) / CAM_Z) * 180 / Math.PI; camera.aspect = W / H; camera.updateProjectionMatrix();
+  renderer.setSize(W, H, false);
+  heroU.uRes.value.set(W, H); grainMesh.material.uniforms.uRes.value.set(W, H);
+  backdrop.scale.set(W * 1.2, H * 1.2, 1); dim.scale.set(W * 1.2, H * 1.2, 1);
+}
+
+/* =====================================================================
+   7. Cursor + sound
+   ===================================================================== */
+const cursor = (() => {
+  const c = $('#cur'), lbl = c.querySelector('span'); let shown = false;
+  const st = { x: W / 2, y: H / 2 };
+  addEventListener('pointermove', e => { st.x = e.clientX; st.y = e.clientY; if (!shown && !TOUCH) { shown = true; c.classList.add('show'); } });
+  return {
+    set(mode, text = '') { c.classList.remove('big', 'aim', 'hide'); if (mode) c.classList.add(mode); lbl.textContent = text; },
+    tick() { c.style.transform = `translate(${st.x}px,${st.y}px)`; },
+    el: c,
+  };
+})();
+
+const sound = (() => {
+  let ctx = null, on = false;
+  const btn = $('#snd');
+  btn.addEventListener('click', () => { on = !on; btn.setAttribute('aria-pressed', on); if (on) { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); ctx.resume(); shutter(); } });
+  function burst(t, dur, gain, freq) {
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2.6);
+    const s = ctx.createBufferSource(); s.buffer = buf;
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 0.9;
+    const g = ctx.createGain(); g.gain.value = gain;
+    s.connect(f).connect(g).connect(ctx.destination); s.start(t);
+  }
+  function shutter() { if (!on || !ctx) return; const t = ctx.currentTime; burst(t, 0.05, 0.6, 2600); burst(t + 0.065, 0.09, 0.45, 1400); burst(t + 0.16, 0.04, 0.25, 3800); }
+  function tick() { if (!on || !ctx) return; burst(ctx.currentTime, 0.025, 0.18, 4200); }
+  return { shutter, tick };
+})();
+
+/* =====================================================================
+   8. Smooth scroll + scroll-linked motion
+   ===================================================================== */
+gsap.registerPlugin(ScrollTrigger);
+let lenis = null, scrollVel = 0, velTarget = 0;
+if (!REDUCED) {
+  lenis = new Lenis({ lerp: 0.085, smoothWheel: true, syncTouch: false, autoRaf: false });
+  lenis.on('scroll', e => { velTarget = e.velocity; ScrollTrigger.update(); });
+  gsap.ticker.add(t => lenis.raf(t * 1000));
+  gsap.ticker.lagSmoothing(0);
+  lenis.stop();
+} else {
+  addEventListener('scroll', () => ScrollTrigger.update(), { passive: true });
+}
+const scrollTo = (target) => { if (lenis) lenis.scrollTo(target, { offset: 0, duration: 1.4, easing: t => 1 - Math.pow(1 - t, 4) }); else document.querySelector(target).scrollIntoView(); };
+document.querySelectorAll('[data-scroll]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); scrollTo(a.getAttribute('href')); }));
+
+// nav theme + readout per section
+const nav = $('#nav'), roCh = $('#ro-ch');
+function sectionTriggers() {
+  const set = (name, ink) => () => { roCh.textContent = name; nav.classList.toggle('ink', ink); cursor.el.classList.toggle('ink', ink); };
+  const defs = [['#hero', 'Viewfinder', false], ['#roll', 'The roll', false], ...CHAPTERS.map(c => ['#' + c.key, c.title, true]), ['#sheet-cta', 'Index', true], ['#about', 'About', true], ['#contact', 'Contact', true]];
+  defs.forEach(([sel, name, ink]) => {
+    ScrollTrigger.create({ trigger: sel, start: 'top 50%', end: 'bottom 50%', onEnter: set(name, ink), onEnterBack: set(name, ink) });
+  });
+}
+
+// the roll: pinned horizontal scroll
+let rollTween = null;
+function rollPin() {
+  const dist = () => strip.scrollWidth - W + parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gutter')) * 1;
+  rollTween = gsap.to(strip, { x: () => -dist(), ease: 'none', scrollTrigger: { trigger: '#roll', start: 'top top', end: () => '+=' + Math.max(dist() * 0.9, H), pin: true, scrub: REDUCED ? false : 0.6, invalidateOnRefresh: true, anticipatePin: 1 } });
+}
+
+// chapter parallax + title reveal
+function chapterMotion() {
+  document.querySelectorAll('.ch-grid .ph').forEach(f => {
+    const sp = parseFloat(f.dataset.sp || 1), amp = (sp - 1) * 160;
+    if (REDUCED || Math.abs(amp) < 1) return;
+    gsap.fromTo(f, { y: amp }, { y: -amp, ease: 'none', scrollTrigger: { trigger: f, start: 'top bottom', end: 'bottom top', scrub: true } });
+  });
+  document.querySelectorAll('.ch-head h2').forEach(h => {
+    const cs = h.querySelectorAll('.c');
+    if (REDUCED) { gsap.set(cs, { y: 0, opacity: 1 }); return; }
+    gsap.to(cs, { y: 0, opacity: 1, duration: 1.1, ease: 'expo.out', stagger: 0.035, scrollTrigger: { trigger: h, start: 'top 88%', once: true } });
+  });
+}
+
+// develop when a figure enters the viewport
+const io = new IntersectionObserver(entries => {
+  entries.forEach(en => {
+    const pl = planes.find(x => x.el === en.target); if (!pl) return;
+    pl.inView = en.isIntersecting;
+    if (en.isIntersecting && pl.mesh.material.uniforms.uHasTex && pl.mesh.material.uniforms.uHasTex.value > 0 && !pl.developed) develop(pl, pl.kind === 'roll');
+    if (en.isIntersecting && pl.kind !== 'hero') loadTex(pl.p, SIZES.tex);
+  });
+}, { rootMargin: '12% 0px 8% 0px', threshold: 0.08 });
+
+/* =====================================================================
+   9. The print (lightbox with loupe)
+   ===================================================================== */
+const printOv = $('#print'), printHit = $('#print-hit');
+const print = { open: false, n: 0, mesh: null, from: null, u: null, busy: false, loupe: 0, loupeT: 0, inside: false };
+function printUniforms() {
+  return { uTex: { value: null }, uRes: { value: new THREE.Vector2(1, 1) }, uImgRes: { value: new THREE.Vector2(3, 2) }, uHasTex: { value: 0 }, uMouse: { value: new THREE.Vector2(-9999, -9999) }, uLoupe: { value: 0 }, uRadius: { value: TOUCH ? 110 : 150 }, uZoom: { value: 2.1 }, uBlur: { value: 0 }, uOpacity: { value: 1 }, uTime: { value: 0 } };
+}
+function printFit(p) {
+  const padX = clamp(W * 0.08, 24, 140), padT = 96, padB = 120;
+  const maxW = W - padX * 2, maxH = H - padT - padB;
+  let w = maxW, h = w / p.ar; if (h > maxH) { h = maxH; w = h * p.ar; }
+  return { w, h, cx: W / 2, cy: padT + maxH / 2 };
+}
+function makePrintMesh(p) {
+  const mat = new THREE.ShaderMaterial({ vertexShader: VERT_FLAT, fragmentShader: FRAG_PRINT, uniforms: printUniforms(), transparent: true, depthTest: false, depthWrite: false });
+  const mesh = new THREE.Mesh(planeGeo, mat); mesh.renderOrder = 10;
+  const t = texCache.get(`${p.n}@${SIZES.tex}`); if (t) applyTex(mat, t);
+  loadTex(p, SIZES.hi).then(hi => { if (hi && print.mesh === mesh) applyTex(mat, hi); });
+  sceneOv.add(mesh); return mesh;
+}
+function setMeshRect(mesh, r) { mesh.position.set(r.cx - W / 2, -(r.cy - H / 2), mesh.position.z); mesh.scale.set(r.w, r.h, 1); mesh.material.uniforms.uRes.value.set(r.w, r.h); }
+function updatePrintUI(n) {
+  const p = P(n), ch = chapterOf(n);
+  $('#print-ch').textContent = ch ? ch.title : ''; $('#print-title').textContent = p.t; $('#print-meta').textContent = `Frame ${pad2(n)}`; $('#print-n').textContent = pad2(n);
+  $('#ro-fr').textContent = `${pad2(n)}/26`;
+}
+function openPrint(n, fromRect, source) {
+  if (print.open || print.busy) return;
+  print.open = true; print.busy = true; print.n = n; print.source = source;
+  const p = P(n);
+  document.body.classList.add('overlay-open'); printOv.classList.add('on'); if (lenis) lenis.stop();
+  backdrop.visible = true; gsap.to(backdrop.material, { opacity: 0.965, duration: 0.5, ease: 'power2.out' });
+  if (sheet.open) { dim.visible = true; gsap.to(dim.material, { opacity: 0.8, duration: 0.5, ease: 'power2.out' }); }
+  gsap.fromTo(printOv.querySelector('.ui'), { opacity: 0 }, { opacity: 1, duration: 0.5, delay: 0.2 });
+  updatePrintUI(n);
+  const mesh = makePrintMesh(p); print.mesh = mesh;
+  const from = fromRect ? { w: fromRect.width, h: fromRect.height, cx: fromRect.left + fromRect.width / 2, cy: fromRect.top + fromRect.height / 2 } : { ...printFit(p), w: printFit(p).w * 0.9, h: printFit(p).h * 0.9 };
+  print.from = fromRect ? from : null;
+  const to = printFit(p);
+  const st = { ...from };
+  setMeshRect(mesh, st);
+  sound.shutter();
+  gsap.to(st, { ...to, duration: REDUCED ? 0 : 0.95, ease: 'expo.inOut', onUpdate: () => setMeshRect(mesh, st), onComplete: () => { print.busy = false; } });
+  cursor.set('hide');
+}
+function closePrint() {
+  if (!print.open || print.busy) return; print.busy = true;
+  const mesh = print.mesh; const st = { w: mesh.scale.x, h: mesh.scale.y, cx: mesh.position.x + W / 2, cy: -mesh.position.y + H / 2 };
+  gsap.to(printOv.querySelector('.ui'), { opacity: 0, duration: 0.3 });
+  const back = print.from && print.source === 'page' ? (() => { const f = planes.find(x => x.kind !== 'hero' && x.p.n === print.n && x.rect && x.rect.top < H && x.rect.bottom > 0); return f ? { w: f.rect.width, h: f.rect.height, cx: f.rect.left + f.rect.width / 2, cy: f.rect.top + f.rect.height / 2 } : null; })() : (print.source === 'sheet' ? sheet.rectOf(print.n) : null);
+  const tl = gsap.timeline({ onComplete: () => { sceneOv.remove(mesh); mesh.material.dispose(); print.mesh = null; print.open = false; print.busy = false; printOv.classList.remove('on'); if (!sheet.open) { document.body.classList.remove('overlay-open'); backdrop.visible = false; if (lenis) lenis.start(); } cursor.set(''); } });
+  if (back && !REDUCED) tl.to(st, { ...back, duration: 0.8, ease: 'expo.inOut', onUpdate: () => setMeshRect(mesh, st) }, 0);
+  tl.to(mesh.material.uniforms.uOpacity, { value: 0, duration: back ? 0.25 : 0.4, ease: 'power2.in' }, back ? 0.6 : 0);
+  if (sheet.open) tl.to(dim.material, { opacity: 0, duration: 0.5, onComplete: () => { dim.visible = false; } }, 0.2);
+  else tl.to(backdrop.material, { opacity: 0, duration: 0.5 }, 0.2);
+}
+function stepPrint(dir) {
+  if (!print.open || print.busy) return; print.busy = true;
+  const list = CHAPTERS.flatMap(c => c.items.map(i => i.n));
+  const idx = list.indexOf(print.n); const n = list[(idx + dir + list.length) % list.length];
+  const p = P(n), old = print.mesh, fit = printFit(p);
+  const mesh = makePrintMesh(p); print.mesh = mesh; print.n = n; updatePrintUI(n); sound.tick();
+  const st = { ...fit, cx: fit.cx + dir * W * 0.45 }; setMeshRect(mesh, st); mesh.material.uniforms.uOpacity.value = 0;
+  const oldSt = { w: old.scale.x, h: old.scale.y, cx: old.position.x + W / 2, cy: -old.position.y + H / 2 };
+  const tl = gsap.timeline({ onComplete: () => { sceneOv.remove(old); old.material.dispose(); print.busy = false; } });
+  const D = REDUCED ? 0.01 : 0.85;
+  tl.to(oldSt, { cx: oldSt.cx - dir * W * 0.45, duration: D, ease: 'expo.inOut', onUpdate: () => setMeshRect(old, oldSt) }, 0)
+    .to(old.material.uniforms.uOpacity, { value: 0, duration: D * 0.7, ease: 'power2.in' }, 0)
+    .to(old.material.uniforms.uBlur, { value: 0.012, duration: D * 0.5, ease: 'power2.in' }, 0)
+    .to(st, { cx: fit.cx, duration: D, ease: 'expo.inOut', onUpdate: () => setMeshRect(mesh, st) }, 0)
+    .to(mesh.material.uniforms.uOpacity, { value: 1, duration: D * 0.7, ease: 'power2.out' }, D * 0.3)
+    .fromTo(mesh.material.uniforms.uBlur, { value: 0.014 }, { value: 0, duration: D, ease: 'power3.out' }, 0);
+}
+$('#print-close').addEventListener('click', closePrint);
+$('#print-prev').addEventListener('click', () => stepPrint(-1));
+[['#print-prev', 'Prev'], ['#print-next', 'Next'], ['#print-close', 'Close']].forEach(([s, l]) => { const b = $(s); b.addEventListener('pointerenter', () => { print.loupeT = 0; cursor.set('big', l); }); });
+$('#print-next').addEventListener('click', () => stepPrint(1));
+printHit.addEventListener('click', e => { if (!print.mesh) return; const r = meshRect(print.mesh); const inside = e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom; if (!inside) closePrint(); else stepPrint(1); });
+printHit.addEventListener('pointermove', e => {
+  if (!print.mesh) return; const r = meshRect(print.mesh);
+  print.inside = e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom;
+  print.mesh.material.uniforms.uMouse.value.set(e.clientX - r.left, r.height - (e.clientY - r.top));
+  print.loupeT = print.inside ? 1 : 0;
+  if (!print.inside) cursor.set('big', 'Close'); else cursor.set('hide');
+  $('#print-hint').style.opacity = print.inside ? 0 : '';
+});
+printHit.addEventListener('pointerleave', () => { print.loupeT = 0; });
+function meshRect(mesh) { const w = mesh.scale.x, h = mesh.scale.y, cx = mesh.position.x + W / 2, cy = -mesh.position.y + H / 2; return { left: cx - w / 2, right: cx + w / 2, top: cy - h / 2, bottom: cy + h / 2, width: w, height: h }; }
+
+/* =====================================================================
+   10. The contact sheet (infinite draggable grid)
+   ===================================================================== */
+const sheetOv = $('#sheet'), dragEl = $('#sheet-drag');
+const sheet = {
+  open: false, items: [], ox: 0, oy: 0, vx: 0, vy: 0, dragging: false, last: null, idle: 0, hover: null, moved: 0, Py: 0,
+  rectOf(n) { const it = this.items.find(i => i.p.n === n); if (!it || !it.mesh.visible) return null; const m = it.mesh; return { w: m.scale.x, h: m.scale.y, cx: m.position.x + W / 2, cy: -m.position.y + H / 2 }; },
+};
+function sheetLayout(seed = Math.random()) {
+  const rows = H > 820 ? 4 : 3, gap = clamp(W * 0.018, 14, 28);
+  let Hc = clamp(H * 0.26, 170, 320);
+  const order = PHOTOS.map(p => p.n);
+  // seeded shuffle
+  let s = Math.floor(seed * 1e9) || 1; const rnd = () => { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return ((s >>> 0) % 10000) / 10000; };
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  const rowsArr = Array.from({ length: rows }, () => []);
+  order.forEach((n, i) => rowsArr[i % rows].push(n));
+  const periods = rowsArr.map(r => r.reduce((a, n) => a + Hc * P(n).ar + gap, 0));
+  const minP = Math.min(...periods), Py0 = rows * (Hc + gap);
+  const f = Math.max(1, (W * 1.12) / minP, (H * 1.08) / Py0);
+  Hc *= f;
+  sheet.Py = rows * (Hc + gap);
+  const map = new Map(sheet.items.map(it => [it.p.n, it]));
+  rowsArr.forEach((r, ri) => {
+    let x = ri * 90; const Px = r.reduce((a, n) => a + Hc * P(n).ar + gap, 0);
+    r.forEach(n => {
+      const p = P(n), w = Hc * p.ar;
+      let it = map.get(n);
+      if (!it) { const mesh = makePhotoMesh(p, '#161616'); mesh.material.uniforms.uDevelop.value = 1; mesh.material.uniforms.uGray.value = 0.85; mesh.material.uniforms.uDish.value = 0.00022; mesh.renderOrder = 1; mesh.visible = false; sceneOv.add(mesh); it = { p, mesh, hoverT: 0 }; sheet.items.push(it); }
+      it.sx = x + w / 2; it.sy = ri * (Hc + gap) + Hc / 2; it.w = w; it.h = Hc; it.Px = Px;
+      x += w + gap;
+    });
+  });
+}
+function sheetUpdate() {
+  if (!sheet.open) return;
+  if (!sheet.dragging) { sheet.ox += sheet.vx; sheet.oy += sheet.vy; sheet.vx *= 0.94; sheet.vy *= 0.94; if (sheet.idle > 150 && !REDUCED) { sheet.ox += 0.25; sheet.oy += 0.08; } }
+  sheet.idle++;
+  const mx = mouse.x - W / 2, my = mouse.y - H / 2; let hov = null;
+  sheet.items.forEach(it => {
+    const x = (((it.sx + sheet.ox) % it.Px) + it.Px * 1.5) % it.Px - it.Px / 2;
+    const y = (((it.sy + sheet.oy) % sheet.Py) + sheet.Py * 1.5) % sheet.Py - sheet.Py / 2;
+    const vis = Math.abs(x) < W / 2 + it.w && Math.abs(y) < H / 2 + it.h;
+    it.mesh.visible = vis;
+    if (!vis) return;
+    it.mesh.position.set(x, -y, 0); it.mesh.scale.set(it.w, it.h, 1);
+    const u = it.mesh.material.uniforms; u.uRes.value.set(it.w, it.h);
+    if (!it.mesh.material.uniforms.uHasTex.value) { const t = texCache.get(`${it.p.n}@${SIZES.tex}`); if (t) applyTex(it.mesh.material, t); else loadTex(it.p, SIZES.tex); }
+    if (!TOUCH && !print.open && Math.abs(mx - x) < it.w / 2 && Math.abs(my - y) < it.h / 2) { hov = it; u.uMouse.value.set((mx - x) / it.w + 0.5, 0.5 - (my - y) / it.h); }
+  });
+  sheet.hover = hov;
+  sheet.items.forEach(it => { const u = it.mesh.material.uniforms; const target = it === hov ? 1 : 0; u.uHover.value = lerp(u.uHover.value, target, 0.12); u.uGray.value = lerp(u.uGray.value, 0.85 - 0.85 * target, 0.12); u.uTime.value = now; });
+  if (!print.open && !sheet.dragging) cursor.set(hov ? 'big' : '', hov ? 'Open' : '');
+}
+function openSheet() {
+  if (sheet.open) return; sheet.open = true; sheet.idle = 0;
+  if (!sheet.items.length) sheetLayout(0.42);
+  document.body.classList.add('overlay-open'); sheetOv.classList.add('on'); if (lenis) lenis.stop();
+  backdrop.visible = true; gsap.to(backdrop.material, { opacity: 0.985, duration: 0.5, ease: 'power2.out' });
+  gsap.fromTo(sheetOv.querySelector('.ui'), { opacity: 0 }, { opacity: 1, duration: 0.5, delay: 0.25 });
+  sheet.items.forEach((it, i) => { const u = it.mesh.material.uniforms; gsap.fromTo(u.uOpacity, { value: 0 }, { value: 1, duration: 0.8, delay: 0.15 + (i % 7) * 0.05, ease: 'power2.out' }); });
+  roCh.textContent = 'Contact sheet'; nav.classList.remove('ink'); cursor.el.classList.remove('ink');
+}
+function closeSheet() {
+  if (!sheet.open || print.open) return;
+  gsap.to(sheetOv.querySelector('.ui'), { opacity: 0, duration: 0.3 });
+  sheet.items.forEach(it => gsap.to(it.mesh.material.uniforms.uOpacity, { value: 0, duration: 0.35, ease: 'power2.in' }));
+  gsap.to(backdrop.material, { opacity: 0, duration: 0.5, delay: 0.1, onComplete: () => { sheet.open = false; sheet.items.forEach(it => it.mesh.visible = false); sheetOv.classList.remove('on'); document.body.classList.remove('overlay-open'); backdrop.visible = false; if (lenis) lenis.start(); cursor.set(''); ScrollTrigger.update(); } });
+}
+$('#open-sheet').addEventListener('click', openSheet);
+$('#sheet-cta-box').addEventListener('click', openSheet);
+$('#sheet-cta-box').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSheet(); } });
+$('#sheet-close').addEventListener('click', closeSheet);
+$('#sheet-shuffle').addEventListener('click', () => { sheet.items.forEach(it => gsap.fromTo(it.mesh.material.uniforms.uOpacity, { value: 0.2 }, { value: 1, duration: 0.7, ease: 'power2.out' })); sheetLayout(); sheet.idle = 0; });
+dragEl.addEventListener('pointerdown', e => { sheet.dragging = true; sheet.moved = 0; sheet.last = { x: e.clientX, y: e.clientY }; sheet.vx = sheet.vy = 0; dragEl.classList.add('dragging'); dragEl.setPointerCapture(e.pointerId); cursor.set('big', 'Drag'); sheet.idle = 0; });
+dragEl.addEventListener('pointermove', e => {
+  sheet.idle = 0;
+  if (!sheet.dragging) return;
+  const dx = e.clientX - sheet.last.x, dy = e.clientY - sheet.last.y; sheet.last = { x: e.clientX, y: e.clientY };
+  sheet.ox += dx; sheet.oy += dy; sheet.vx = lerp(sheet.vx, dx, 0.5); sheet.vy = lerp(sheet.vy, dy, 0.5); sheet.moved += Math.abs(dx) + Math.abs(dy);
+});
+const endDrag = e => {
+  if (!sheet.dragging) return; sheet.dragging = false; dragEl.classList.remove('dragging');
+  if (sheet.moved < 6) { // click
+    const mx = e.clientX - W / 2, my = e.clientY - H / 2;
+    const it = sheet.items.find(it => it.mesh.visible && Math.abs(mx - it.mesh.position.x) < it.w / 2 && Math.abs(my + it.mesh.position.y) < it.h / 2);
+    if (it) { const r = sheet.rectOf(it.p.n); openPrint(it.p.n, r ? { left: r.cx - r.w / 2, top: r.cy - r.h / 2, width: r.w, height: r.h } : null, 'sheet'); }
+  }
+};
+dragEl.addEventListener('pointerup', endDrag); dragEl.addEventListener('pointercancel', endDrag);
+dragEl.addEventListener('wheel', e => { e.preventDefault(); sheet.vx -= e.deltaX * 0.08; sheet.vy -= e.deltaY * 0.08; sheet.idle = 0; }, { passive: false });
+
+/* keyboard */
+addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if (print.open) closePrint(); else if (sheet.open) closeSheet(); }
+  if (print.open) { if (e.key === 'ArrowRight') stepPrint(1); if (e.key === 'ArrowLeft') stepPrint(-1); }
+  else if (sheet.open) { const k = 40; if (e.key === 'ArrowRight') sheet.vx -= k; if (e.key === 'ArrowLeft') sheet.vx += k; if (e.key === 'ArrowDown') sheet.vy -= k; if (e.key === 'ArrowUp') sheet.vy += k; }
+});
+
+/* =====================================================================
+   11. Hero interactions
+   ===================================================================== */
+function shoot() {
+  if (heroBusy || !heroU.uHasTex.value) return;
+  const next = (heroIdx + 1) % HERO_SEQ.length, p = P(HERO_SEQ[next]);
+  const t = texCache.get(`${p.n}@${SIZES.hi}`) || texCache.get(`${p.n}@${SIZES.tex}`);
+  if (!t) { loadTex(p, SIZES.hi); return; }
+  heroBusy = true; sound.shutter();
+  heroU.uTex2.value = t; heroU.uImgRes2.value.set(t.image.width, t.image.height);
+  const tl = gsap.timeline({ onComplete: () => { heroU.uTex.value = t; heroU.uImgRes.value.copy(heroU.uImgRes2.value); heroU.uMix.value = 0; heroIdx = next; heroBusy = false; heroFig.dataset.n = p.n; loadTex(P(HERO_SEQ[(next + 1) % HERO_SEQ.length]), SIZES.hi); } });
+  if (!REDUCED) tl.to(irisState, { o: 0.08, duration: 0.11, ease: 'power3.in', onUpdate: () => setIris(irisState.o) }, 0).to(irisState, { o: 1, duration: 0.55, ease: 'expo.out', onUpdate: () => setIris(irisState.o) }, 0.13);
+  tl.to(heroU.uFlash, { value: 0.9, duration: 0.05 }, 0).to(heroU.uFlash, { value: 0, duration: 0.6, ease: 'power2.out' }, 0.06)
+    .to(heroU.uMix, { value: 1, duration: REDUCED ? 0.01 : 0.65, ease: 'power2.inOut' }, 0.1);
+  $('#hero-fr').textContent = pad2(p.n); $('#hero-fname').textContent = p.t; $('#ro-fr').textContent = `${pad2(p.n)}/26`;
+}
+heroFig.addEventListener('click', shoot);
+heroFig.addEventListener('pointerenter', () => cursor.set('aim'));
+heroFig.addEventListener('pointerleave', () => cursor.set(''));
+
+/* =====================================================================
+   12. Render loop
+   ===================================================================== */
+let now = 0; const focusEl = $('#focus');
+addEventListener('pointermove', e => { mouse.tx = e.clientX; mouse.ty = e.clientY; }, { passive: true });
+function frame(time) {
+  now = time; // seconds (gsap ticker)
+  mouse.x = lerp(mouse.x, mouse.tx, 0.12); mouse.y = lerp(mouse.y, mouse.ty, 0.12);
+  focusPt.x = lerp(focusPt.x, TOUCH ? W / 2 : mouse.tx, 0.07); focusPt.y = lerp(focusPt.y, TOUCH ? H / 2 : mouse.ty, 0.07);
+  scrollVel = lerp(scrollVel, velTarget, 0.1); velTarget *= 0.9;
+  cursor.tick();
+
+  // page planes
+  let nearest = null, nearestD = 1e9;
+  for (const pl of planes) {
+    const r = pl.el.getBoundingClientRect(); pl.rect = r;
+    const on = r.bottom > -200 && r.top < H + 200 && r.width > 0;
+    pl.mesh.visible = on;
+    if (!on) continue;
+    pl.mesh.position.set(r.left + r.width / 2 - W / 2, -(r.top + r.height / 2 - H / 2), 0);
+    pl.mesh.scale.set(r.width, r.height, 1);
+    const u = pl.mesh.material.uniforms;
+    u.uRes.value.set(r.width, r.height); u.uTime.value = time;
+    if (pl.kind === 'hero') {
+      u.uMouse.value.set(mouse.x - r.left, r.height - (mouse.y - r.top)); u.uFocus.value.set(focusPt.x - r.left, r.height - (focusPt.y - r.top));
+      u.uOpacity.value = clamp(1 + r.top / (H * 0.9), 0, 1);
+    } else {
+      pl.mesh.material.uniforms.uHover.value = lerp(u.uHover.value, pl.hoverT, 0.1);
+      u.uVel.value = REDUCED ? 0 : clamp(pl.kind === 'roll' ? -scrollVel * 2.2 : -scrollVel * 1.4, -70, 70);
+      if (pl.kind !== 'about') { const d = Math.abs(r.top + r.height / 2 - H / 2); if (d < nearestD && r.top < H && r.bottom > 0) { nearestD = d; nearest = pl; } }
+    }
+  }
+  if (nearest && !print.open && !sheet.open) { const txt = `${pad2(nearest.p.n)}/26`; const ro = $('#ro-fr'); if (ro.textContent !== txt) ro.textContent = txt; }
+  if (!TOUCH && heroPl.rect) focusEl.style.transform = `translate(${focusPt.x}px,${focusPt.y - heroPl.rect.top}px) translate(-50%,-50%)`;
+
+  // overlays
+  sheetUpdate();
+  if (print.mesh) { const u = print.mesh.material.uniforms; print.loupe = lerp(print.loupe, print.loupeT, 0.15); u.uLoupe.value = print.loupe; u.uTime.value = time; }
+
+  renderer.clear();
+  renderer.render(scenePage, camera);
+  if (sheet.open || print.open) renderer.render(sceneOv, camera);
+  if (!REDUCED) { grainMesh.material.uniforms.uTime.value = time; renderer.render(sceneGrain, orthoCam); }
+}
+
+/* =====================================================================
+   13. Boot
+   ===================================================================== */
+function boot() {
+  initGL();
+  // track figures
+  document.querySelectorAll('#roll .ph').forEach(f => trackFigure(f, 'roll', '#2a211c'));
+  document.querySelectorAll('.ch-grid .ph').forEach(f => trackFigure(f, 'chapter', '#f3efe8'));
+  trackFigure(aboutFig, 'about', '#f3efe8');
+  planes.forEach(pl => { if (pl.kind !== 'hero') io.observe(pl.el); });
+
+  // priority loading: hero first, then the roll in order, then everything else
+  const heroP = P(HERO_SEQ[0]);
+  const heroReady = loadTex(heroP, SIZES.hi).then(t => { if (t) { heroU.uTex.value = t; heroU.uTex2.value = t; heroU.uImgRes.value.set(t.image.width, t.image.height); heroU.uImgRes2.value.copy(heroU.uImgRes.value); heroU.uHasTex.value = 1; loadTex(P(HERO_SEQ[1]), SIZES.hi); } });
+  const order = CHAPTERS.flatMap(c => c.items.map(i => i.n));
+  (async () => { for (let i = 0; i < order.length; i += 3) { await Promise.all(order.slice(i, i + 3).map(n => loadTex(P(n), SIZES.tex))); } loadTex(PORTRAIT, SIZES.tex); })();
+
+  sectionTriggers(); rollPin(); chapterMotion();
+  gsap.ticker.add(frame);
+  addEventListener('resize', onResize);
+
+  const start = performance.now();
+  const waitFor = () => new Promise(res => { const chk = () => { if ((heroU.uHasTex.value && loadedCount >= 6) || performance.now() - start > 4500) res(); else setTimeout(chk, 80); }; heroReady.then(chk); });
+  waitFor().then(reveal);
+}
+function reveal() {
+  const chars = $('#hero .name h1').querySelectorAll('.c');
+  const tl = gsap.timeline();
+  tl.to('#iris .center', { opacity: 0, duration: 0.35 }, 0)
+    .to(heroU.uDevelop, { value: 1, duration: REDUCED ? 0.01 : 1.4, ease: 'power2.out' }, 0.1)
+    .to(irisState, { o: 1, duration: REDUCED ? 0.01 : 1.5, ease: 'expo.inOut', onUpdate: () => setIris(irisState.o) }, 0.15)
+    .to(chars, { y: 0, duration: REDUCED ? 0.01 : 1.1, ease: 'expo.out', stagger: 0.045 }, 0.7)
+    .to('#hero .name p', { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }, 1.3)
+    .fromTo('#hero .hud', { opacity: 0 }, { opacity: 1, duration: 0.8 }, 1.2)
+    .add(() => { nav.classList.add('on'); document.body.classList.remove('locked'); if (lenis) lenis.start(); ScrollTrigger.refresh(); }, 1.0)
+    .add(() => { $('#iris .center').style.display = 'none'; }, 1.9);
+}
+let rT = null;
+function onResize() {
+  W = innerWidth; H = innerHeight; setCamera(); setIris(irisState.o >= 1 ? 1 : irisState.o);
+  clearTimeout(rT); rT = setTimeout(() => { ScrollTrigger.refresh(); if (sheet.items.length) sheetLayout(0.42); if (print.mesh) setMeshRect(print.mesh, printFit(P(print.n))); }, 150);
+}
+
+if (GL) {
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ScrollTrigger.refresh());
+  boot();
+} else {
+  // no WebGL: static fallback, still a complete site
+  iris.style.display = 'none'; nav.classList.add('on'); document.body.classList.remove('locked');
+  document.querySelectorAll('.ch-head h2 .c').forEach(c => { c.style.transform = 'none'; c.style.opacity = 1; });
+  document.querySelectorAll('#hero .name h1 .c').forEach(c => c.style.transform = 'none');
+  $('#hero .name p').style.opacity = 1; $('#hero .hud').style.opacity = 1;
+  sectionTriggers(); rollPin();
+}
+</script>
+</body>
+</html>
